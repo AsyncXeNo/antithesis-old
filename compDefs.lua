@@ -10,15 +10,36 @@ concord.component("Position", function(component, x, y)
     component.y = y or 0
 end)
 
+
 --[[
-    Velocity
+    Movable
 ]]
-concord.component("Velocity", function(component, x, y, maxVel)
-    component.x = x or 0
-    component.y = y or 0
-    component.maxVel = maxVel or 50000
+concord.component("Movable", function(component, vel, maxVel, acceleration, friction)
+    component.vel = vel or { x = 0, y = 0 }
+    component.maxVel = maxVel or { x = 3000, y = 3000 }
+    component.acceleration = acceleration or { x = 0, y = 0 }
+    component.friction = friction or { x = 0, y = 0 }
 end)
 
+
+-- concord.component("MovableAngular", function(component, speed_polar, maxSpeed, acceleration_polar)
+--     component.speed_polar = speed_polar or {0, 0}
+--     component.maxSpeed = maxSpeed or 3000
+--     component.acceleration_polar = acceleration_polar or {0, 0}
+-- end)
+
+
+--[[
+    Path
+]]
+concord.component("Path", function(component, points, speed, acceleration)
+    component.points = points
+    component.speed = speed
+    component.acceleration = acceleration
+    component.t = 0
+    component.curveNum = 1
+end)
+    
 
 --[[
     SpriteRenderer
@@ -48,7 +69,6 @@ concord.component("Animator", function(component, states, transitions, variables
     component.variables = variables
 end)
 
-    
 --[[
     BoxCollider
 ]]
@@ -71,8 +91,27 @@ end)
 --[[
     Player
 ]]
-concord.component("Controllable", function(component, acceleration)
-    component.acceleration = acceleration
+concord.component("Controllable", function(component, hp)
+    component.hp = hp or 100
+end)
+
+
+--[[
+    Projectile
+]]
+concord.component("Projectile", function(component, damage, friendly)
+    component.damage = damage or 5
+    component.friendly = friendly or false   
+end)
+
+
+--[[
+    States
+]]
+concord.component("Timeline", function(component, actions)
+    component.actions = actions
+    component.curIndex = 1
+    component.vars = {}
 end)
 
 

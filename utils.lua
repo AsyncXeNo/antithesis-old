@@ -7,6 +7,14 @@ function normalize(vec)
     return vec
 end
 
+function bezierValue(b0, b1, b2, b3, t)
+    return (1-t)^3*b0     +     3*(1-t)^2*t*b1    +     3*(1-t)*t^2*b2    +    t^3*b3
+end
+
+function bezierPoint(p1, p2, p3, p4, t)
+    return {x = bezierValue(p1.x,p2.x,p3.x,p4.x,t),
+            y = bezierValue(p1.y,p2.y,p3.y,p4.y,t)}
+end
 
 function lerp(a, b, t)
     return a + (b-a) * t

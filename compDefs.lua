@@ -32,12 +32,10 @@ end)
 --[[
     Path
 ]]
-concord.component("Path", function(component, points, speed, acceleration)
+concord.component("Path", function(component, points, duration)
     component.points = points
-    component.speed = speed
-    component.acceleration = acceleration
+    component.duration = duration
     component.t = 0
-    component.curveNum = 1
 end)
     
 
@@ -46,7 +44,7 @@ end)
 ]]
 concord.component("SpriteRenderer", function(component, spritesheet)
     component.spritesheet = spritesheet
-    component.sprite = love.graphics.newQuad(0, 0, spritesheet.width, spritesheet.height)
+    component.sprite = love.graphics.newQuad(0, 0, spritesheet.width, spritesheet.height, spritesheet.width, spritesheet.height)
     component.frames = {}
 end)
 

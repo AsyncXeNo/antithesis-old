@@ -1,24 +1,39 @@
 
 require "compDefs"
 require "sysDefs"
-logger = require "log"
-concord = require "libs.Concord"
+local logger = require "log"
+local concord = require "libs.Concord"
 
 
 function love.load()
     love.mouse.setVisible(false)
     
     -- globals
-    gameWidth, gameHeight = love.graphics.getDimensions()
+    local gameWidth, gameHeight = love.graphics.getDimensions()
     logger.info("Started")
-    world = concord.world():addSystem(DebugRenderSystem):addSystem(MovementSystem):addSystem(InputSystem):addSystem(TimelineSystem)
-    player = concord.entity(world)
+    World = concord.world():addSystem(DebugRenderSystem):addSystem(MovementSystem):addSystem(InputSystem):addSystem(TimelineSystem)
+    local player = concord.entity(World)
         :give("Position", 100, 600)
         :give("Movable", { x = 0, y = 0}, { x = 300, y = 300 }, { x = 0, y = 0 }, { x = 0, y = 0 })
         :give("BoxRenderer", 50, 50, {1, 0 , 0, 1})
         :give("Controllable")
 
-    enemy = concord.entity(world)
+    local bullet_test = concord.entity(World)
+        :give("Position", 960, 0)
+        :give("CircleRenderer", 10, {0, 0, 1, 1})
+        :give("Path", {
+            {
+                {x=-600,y=270},
+                {x=180, y=180},
+                {x=0, y=400}
+            },
+            {
+                {x=750, y=680},
+                {x=0, y=800}
+            }
+        }, 7)
+
+    --[[ local enemy = concord.entity(World)
         :give("Position", 0, 0)
         :give("CircleRenderer", 25, {0, 1, 0, 1})
         :give("Timeline", {
@@ -45,12 +60,12 @@ function love.load()
                 {x = 1300, y = -300},
                 0.02
             }
-        })
+        }) ]]
+    World:emit("init", World)
 end
 
-
 function love.update(dt)
-    world:emit("update", dt)
+    World:emit("update", dt)
 end
 
 
@@ -63,5 +78,5 @@ end
 
 
 function love.draw()
-    world:emit("draw")
+    World:emit("draw")
 end

@@ -11,36 +11,38 @@ function love.load()
     -- globals
     local gameWidth, gameHeight = love.graphics.getDimensions()
     logger.info("Started")
-    World = concord.world():addSystem(DebugRenderSystem):addSystem(MovementSystem):addSystem(InputSystem):addSystem(TimelineSystem)
+    World = concord.world():addSystem(DebugRenderSystem):addSystem(MovementSystem):addSystem(InputSystem):addSystem(TimelineSystem):addSystem(CollisionSystem)
     local player = concord.entity(World)
-        :give("Position", 100, 600)
-        :give("Movable", { x = 0, y = 0}, { x = 300, y = 300 }, { x = 0, y = 0 }, { x = 0, y = 0 })
-        :give("BoxRenderer", 50, 50, {1, 0 , 0, 1})
+        :give("Position", 50, 400)
+        :give("Movable", { x = 0, y = 0}, { x = 200, y = 200 }, { x = 0, y = 0 }, { x = 0, y = 0 })
+        :give("BoxRenderer", 20, 20, {1, 0 , 0, 1})
         :give("Controllable")
+        :give("Collider", "box", { width=20, height=20 }, { x = 0, y = 0}, function(obj, world) logger.debug('Collision!!!!!!!!!!') end)
 
-    local bullet_test = concord.entity(World)
-        :give("Position", 960, 0)
-        :give("CircleRenderer", 10, {0, 0, 1, 1})
-        :give("Path", {
-            {
-                {x=-600,y=270},
-                {x=180, y=180},
-                {x=0, y=400}
-            },
-            {
-                {x=750, y=680},
-                {x=0, y=800}
-            }
-        }, 7)
+    -- local bullet_test = concord.entity(World)
+    --     :give("Position", 960, 0)
+    --     :give("CircleRenderer", 10, {0, 0, 1, 1})
+    --     :give("Path", {
+    --         {
+    --             {x=-600,y=270},
+    --             {x=180, y=180},
+    --             {x=0, y=400}
+    --         },
+    --         {
+    --             {x=750, y=680},
+    --             {x=0, y=800}
+    --         }
+    --     }, 7)
 
-    --[[ local enemy = concord.entity(World)
-        :give("Position", 0, 0)
-        :give("CircleRenderer", 25, {0, 1, 0, 1})
+    local enemy = concord.entity(World)
+        :give("Position", 30, 30)
+        :give("Collider", "circle", {r=10})
+        :give("CircleRenderer", 10, {0, 1, 0, 1})
         :give("Timeline", {
             {
                 "move",
-                {x = 650, y = 300},
-                0.02
+                {x = 512, y = 50},
+                0.01
             },
             {
                 "shoot",
@@ -48,7 +50,7 @@ function love.load()
                 math.pi,
                 40,
                 10,
-                0.1,
+                0.2, -- burst time
                 20,
                 {
                     speed = 300,
@@ -58,9 +60,10 @@ function love.load()
             {
                 "move",
                 {x = 1300, y = -300},
-                0.02
+                0.01
             }
-        }) ]]
+        })
+        
     World:emit("init", World)
 end
 

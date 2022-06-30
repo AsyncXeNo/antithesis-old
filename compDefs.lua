@@ -67,23 +67,34 @@ concord.component("Animator", function(component, states, transitions, variables
     component.variables = variables
 end)
 
+-- --[[
+--     BoxCollider
+-- ]]
+-- concord.component("BoxCollider", function(component, width, height, offset)
+--     component.width = width or 0
+--     component.height = height or 0
+--     component.offset = offset or {x = 0, y = 0}
+-- end)
+
 --[[
-    BoxCollider
+    Collider
 ]]
-concord.component("BoxCollider", function(component, width, height, offset)
-    component.width = width or 0
-    component.height = height or 0
+concord.component("Collider", function(component, type, values, offset, colliding_func)
+    component.type = type
+    component.values = values
     component.offset = offset or {x = 0, y = 0}
+    component.vars = {}
+    component.colliding_func = colliding_func or function() end
 end)
 
 
---[[
-    CircleCollider
-]]
-concord.component("CircleCollider", function(component, radius, offset)
-    component.radius = radius or 0
-    component.offset = offset or {x = 0, y = 0}
-end)
+-- --[[
+--     CircleCollider
+-- ]]
+-- concord.component("CircleCollider", function(component, radius, offset)
+--     component.radius = radius or 0
+--     component.offset = offset or {x = 0, y = 0}
+-- end)
 
 
 --[[

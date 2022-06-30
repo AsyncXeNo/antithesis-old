@@ -6,7 +6,7 @@
 
 ##### Animator Transitions
 
-```
+```lua
 {
     -- Default state is the first state provided in the states table
     -- All variables mentioned in condition have to be provided in the variables table
@@ -35,7 +35,7 @@
 
 ##### Bezier Curve Path for Movement
 
-```
+```lua
 {
     -- Each pair is a point
     {
@@ -63,7 +63,7 @@
 
 ##### Timeline
 
-```
+```lua
 {
     {
         -- Action 1
@@ -77,4 +77,152 @@
 
 Types of actions:
 - Move to `arg1: {x,y}` with lerp `arg2: t`
-- Shoot with `arg1: type` pattern, `arg2: radius` away, of specification `arg3, arg4, arg5... arg7`, using `arg8: bullet` bullet   
+- Shoot with `arg1: type` pattern, `arg2: radius` away, of specification `arg3, arg4, arg5... arg7`, using `arg8: bullet` bullet
+
+
+##### Collision Detection QuadTree
+
+```lua
+{
+    {
+        {
+            ...
+        },
+        {
+            ...
+        },
+        {
+            ...
+        },
+        {
+            ...
+        },
+
+        ["objs"] = {
+            <entity> = true,
+            <entity> = true,
+            ...
+        },
+        
+        ["bounds"] = {
+            {
+                x = <int>,
+                y = <int>
+            },
+            {
+                x = <int>,
+                y = <int>
+            }
+        }
+    },  
+    {
+        {
+            ...
+        },
+        {
+            ...   
+        },
+        {
+            ...   
+        },
+        {
+            ...   
+        },
+        
+        ["objs"] = {
+            <entity> = true,
+            <entity> = true,
+            ...
+        },
+        
+        ["bounds"] = {
+            {
+                x = <int>,
+                y = <int>
+            },
+            {
+                x = <int>,
+                y = <int>
+            }
+        }
+    },
+    {
+        {
+            ...
+        },
+        {
+            ...   
+        },
+        {
+            ...   
+        },
+        {
+            ...   
+        },
+        
+        ["objs"] = {
+            <entity> = true,
+            <entity> = true,
+            ...
+        },
+        
+        ["bounds"] = {
+            {
+                x = <int>,
+                y = <int>
+            },
+            {
+                x = <int>,
+                y = <int>
+            }
+        }
+    },
+    {
+        {
+            ...
+        },
+        {
+            ...   
+        },
+        {
+            ...   
+        },
+        {
+            ...   
+        },
+        
+        ["objs"] = {
+            <entity> = true,
+            <entity> = true,
+            ...
+        },
+        
+        ["bounds"] = {
+            {
+                x = <int>,
+                y = <int>
+            },
+            {
+                x = <int>,
+                y = <int>
+            }
+        }
+    },
+
+    ["objs"] = {
+        <entity> = true,
+        <entity> = true,
+        ...
+    },
+    ["bounds"] = {
+        {
+            x = <int>,
+            y = <int>
+        },
+        {
+            x = <int>,
+            y = <int>
+        }
+    }
+}
+```

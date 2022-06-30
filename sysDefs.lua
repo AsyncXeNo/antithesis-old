@@ -22,7 +22,7 @@ TimelineSystem = concord.system {
 
 function TimelineSystem:update(dt) 
     for _,e in ipairs(self.pool) do
-        action = e.Timeline.actions[e.Timeline.curIndex]        
+        local action = e.Timeline.actions[e.Timeline.curIndex]        
         if action == nil then
             self:getWorld():removeEntity(e)
         else 
@@ -35,23 +35,23 @@ function TimelineSystem:update(dt)
                 end
             elseif action[1] == "shoot" then
                 if action[2] == "burst" then
-                    angleOfCone = action[3]
-                    distance = action[4]
-                    numLines = action[5]
-                    interval = action[6]
-                    numBursts = action[7]
-                    sep = angleOfCone / (numLines + 1)
+                    local angleOfCone = action[3]
+                    local distance = action[4]
+                    local numLines = action[5]
+                    local interval = action[6]
+                    local numBursts = action[7]
+                    local sep = angleOfCone / (numLines + 1)
 
                     e.Timeline.vars.timePassed = (e.Timeline.vars.timePassed or 0) + dt
                     e.Timeline.vars.bursts = e.Timeline.vars.bursts or 0
                     
                     if e.Timeline.vars.timePassed == dt then
-                        speed = action[8].speed
+                        local speed = action[8].speed
                         for i=1,numLines do
-                            angle = (math.pi/2) + (angleOfCone / 2) - (sep * i)
+                            local angle = (math.pi/2) + (angleOfCone / 2) - (sep * i)
                             
                             --TODO: Use arg7
-                            bullet = concord.entity(self:getWorld())
+                            local bullet = concord.entity(self:getWorld())
                                 :give("Position", e.Position.x + math.cos(angle) * distance, e.Position.y + math.sin(angle) * distance)
                                 :give("Movable", { x = math.cos(angle) * speed, y = math.sin(angle) * speed})
                                 :give("CircleRenderer", 5, {0, 0, 1, 1})
@@ -96,6 +96,53 @@ MovementSystem = concord.system {
     }
 }
 
+function MovementSystem:init(world)
+    for _,e in ipairs(self.thirdPool) do
+        logger.debug("Creating function")
+        e.Path.init_point = e.Position
+        e.Path.path_func = function(t) 
+            if math.floor(t) == 0 then
+                local points = {
+                    e.Path.init_point,
+                    {
+                        x = e.Path.points[1][1].x + e.Path.init_point.x,
+                        y = e.Path.points[1][1].y + e.Path.init_point.y
+                    },
+                    {
+                        x = e.Path.points[1][2].x + e.Path.init_point.x,
+                        y = e.Path.points[1][2].y + e.Path.init_point.y
+                    },
+                    {
+                        x = e.Path.points[1][3].x + e.Path.init_point.x,
+                        y = e.Path.points[1][3].y + e.Path.init_point.y
+                    }
+                }
+                return bezierPoint(points[1],points[2],points[3],points[4], e.Path.t)
+            elseif math.floor(t) < #e.Path.points then
+                local points = {
+                    {
+                        x = e.Path.points[math.floor(e.Path.t)][3].x + e.Path.init_point.x,
+                        y = e.Path.points[math.floor(e.Path.t)][3].y + e.Path.init_point.y
+                    },
+                    {
+                        x = 2*e.Path.points[math.floor(e.Path.t)][3].x - e.Path.points[math.floor(e.Path.t)][2].x + e.Path.init_point.x,
+                        y = 2*e.Path.points[math.floor(e.Path.t)][3].y - e.Path.points[math.floor(e.Path.t)][2].y + e.Path.init_point.y
+                    },
+                    {
+                        x = e.Path.points[math.floor(e.Path.t) + 1][1].x + e.Path.init_point.x,
+                        y = e.Path.points[math.floor(e.Path.t) + 1][1].y + e.Path.init_point.y
+                    },
+                    {
+                        x = e.Path.points[math.floor(e.Path.t) + 1][2].x + e.Path.init_point.x,
+                        y = e.Path.points[math.floor(e.Path.t) + 1][2].y + e.Path.init_point.y
+                    }
+                }
+                logger.debug('{'..points[1].x..', '..points[1].y..'}, '..'{'..points[2].x..', '..points[2].y..'}, '..'{'..points[3].x..', '..points[3].y..'}, '..'{'..points[4].x..', '..points[4].y..'}, ')
+                return bezierPoint(points[1],points[2],points[3],points[4], e.Path.t - math.floor(e.Path.t))
+            end
+        end
+    end
+end
 
 function MovementSystem:update(dt)
 
@@ -123,10 +170,10 @@ function MovementSystem:update(dt)
     for _,e in ipairs(self.secondPool) do
         -- Set velocity based on inputs
 
-        movDir = { x = toNumber(e.Controllable.moveRight) - toNumber(e.Controllable.moveLeft), y = toNumber(e.Controllable.moveDown) - toNumber(e.Controllable.moveUp)}
+        local movDir = { x = toNumber(e.Controllable.moveRight) - toNumber(e.Controllable.moveLeft), y = toNumber(e.Controllable.moveDown) - toNumber(e.Controllable.moveUp)}
         movDir = normalize(movDir)
 
-        maxVel = { x = e.Movable.maxVel.x - toNumber(e.Controllable.precision) * (e.Movable.maxVel.x / 2), y = e.Movable.maxVel.y - toNumber(e.Controllable.precision) * (e.Movable.maxVel.y / 2) }
+        local maxVel = { x = e.Movable.maxVel.x - toNumber(e.Controllable.precision) * (e.Movable.maxVel.x / 2), y = e.Movable.maxVel.y - toNumber(e.Controllable.precision) * (e.Movable.maxVel.y / 2) }
 
         e.Movable.vel = { x = movDir.x * maxVel.x, y = movDir.y * maxVel.y }
         
@@ -142,14 +189,14 @@ function MovementSystem:update(dt)
 
     -- projectile movement
     for _,e in ipairs(self.thirdPool) do
-        
-        
-
-        x_amt = math.cos(e.MovableAngular.angle) * e.MovableAngular.speed
-        y_amt = math.sin(e.MovableAngular.angle) * e.MovableAngular.speed
-
-        e.Position.x = e.Position.x + x_amt
-        e.Position.y = e.Position.y + y_amt
+        if e.Path.t >= #e.Path.points then
+            self:getWorld():removeEntity(e)
+        else
+            local dx = (#e.Path.points)/e.Path.duration
+            e.Position = e.Path.path_func(e.Path.t)
+            logger.debug('t='..e.Path.t..', x='..e.Position.x.. ', y='..e.Position.y)
+            e.Path.t = e.Path.t + dx * dt
+        end
     end
 end
 
@@ -164,7 +211,7 @@ InputSystem = concord.system {
 function InputSystem:update(dt) 
     for _, e in ipairs(self.pool) do
         for k,v in pairs(controls) do
-            flag = false
+            local flag = false
             for key,_ in pairs(controls[k]) do
                 if love.keyboard.isDown(key) then 
                     flag = true

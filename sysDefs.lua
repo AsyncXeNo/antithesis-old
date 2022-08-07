@@ -1,14 +1,193 @@
 
 require "utils"
 require "constants"
+
 local concord = require "libs.Concord"
 local controls = require "controls"
 local logger = require "log"
 local inspect = require "inspect"
+local sprites_indices = require "res.index"
+local spritesheets_catalog = require "res.spriteSheets"
+
+--[[
+    ResourceSystem
+]]
+ResourceSystem = concord.system {
+    
+}
+
+function ResourceSystem:init ()
+    local world = self:getWorld()
+    world.atlas = {}
+    world.spritesheets = {}
+
+    for k,v in pairs(sprites_indices) do 
+        world.atlas[k] = love.graphics.newImage(SPRITES_PATH .. v)
+    end
+
+    for k,v in pairs(spritesheets_catalog) do 
+        world.spritesheets[k] = {}
+        local spritesheet = world.spritesheets[k]
+        spritesheet.sprite = love.graphics.newImage(SPRITES_PATH .. v.path)
+        spritesheet.perCell = v.perCell
+        spritesheet.padding = v.padding
+        spritesheet.frameCount = v.frames
+        spritesheet.frames = {}
+
+        local framesPerRow = spritesheet.sprite:getWidth() / (spritesheet.perCell.x + 2 * spritesheet.padding.x)
+
+        for i=1,spritesheet.frameCount,1 do
+            spritesheet.frames[i] = love.graphics.newQuad(
+                spritesheet.padding.x + ((i - 1) % framesPerRow) * (2 * spritesheet.padding.x + spritesheet.perCell.x),
+                spritesheet.padding.y + math.floor((i - 1) / framesPerRow) * (2 * spritesheet.padding.y + spritesheet.perCell.y),
+                spritesheet.perCell.x,
+                spritesheet.perCell.y,
+                spritesheet.sprite
+            )
+        end
+    end
+end
+
 
 --[[
     AnimationSystem
 ]]
+AnimationSystem = concord.system {
+    normAnims = {
+        "Position",
+        "SpriteRenderer",
+        "Animation",
+    },
+    customAnims = {
+        "Position",
+        "SpriteRenderer",
+        "Animation",
+        "Animator"
+    }
+}
+
+
+function AnimationSystem:init()
+    for _,e in ipairs(self.customAnims) do
+        e.SpriteRenderer.index = e.Animator.states[e.Animator.currentState].spritesheet
+        e.Animation.fps = e.Animator.states[e.Animator.currentState].fps
+        
+        for _,t in ipairs(e.Animator.transitions) do
+            if #t.condition % 2 == 0 then
+                t.condition[#t.condition] = nil
+            end
+        end
+    end
+    for _,e in ipairs(self.normAnims) do
+        e.SpriteRenderer.spritesheet = self:getWorld().spritesheets[e.SpriteRenderer.index]
+    end
+end
+
+function AnimationSystem:getMapping(current, table)
+    local value = current
+    for k,v in pairs(table) do
+        if type(v) == "table" then
+            local d = AnimationSystem:getMapping(current, v)
+            value = value[d]
+        else
+            value = value[v]
+        end
+    end
+    return value
+end
+
+function AnimationSystem:update (dt)
+    for _,e in ipairs(self.customAnims) do
+        --Get all values from given mappings
+        local vars = {}
+        for k,v in pairs(e.Animator.variables) do
+            vars[k] = AnimationSystem:getMapping(e, v)
+        end
+
+        --Check against all transitions that have from as the current animation
+        for k,v in pairs(e.Animator.transitions) do
+            if v.from == e.Animator.currentState then
+                local str = ""
+                for a,c in ipairs(v.condition) do
+                    if a % 2 == 0 then
+                        if c == "AND" then
+                            str = str .. " and "
+                        elseif c == "OR" then
+                            str = str .. " or "
+                        end
+                    else
+                        local replaced = c
+                        for index, var in pairs(vars) do
+                            if type(var) == "string" then
+                                var = "'" .. var .. "'"
+                            end
+                            replaced = string.gsub(replaced, index, var)
+                        end
+                        str = str .. replaced 
+                    end
+                end
+                
+                local func = assert(loadstring("return " .. str))
+                if func() then 
+                    e.Animator.currentState = v.to
+                    e.Animation.fps = e.Animator.states[e.Animator.currentState].fps
+                    e.SpriteRenderer.index = e.Animator.states[e.Animator.currentState].spritesheet
+                    e.SpriteRenderer.spritesheet = self:getWorld().spritesheets[e.SpriteRenderer.index]
+                end
+            end
+        end
+    end
+
+    for _,e in ipairs(self.normAnims) do
+        e.Animation.time = e.Animation.time + dt
+    end
+
+    for _,e in ipairs(self.normAnims) do 
+        local frame = (math.floor(e.Animation.time * e.Animation.fps) % e.SpriteRenderer.spritesheet.frameCount) + 1
+        e.SpriteRenderer.selection = e.SpriteRenderer.spritesheet.frames[frame]
+    end
+end
+
+
+--[[
+    DrawSystem
+]]
+DrawSystem = concord.system {
+    pool = {
+        "Position",
+        "SpriteRenderer"
+    }
+}
+
+function DrawSystem:init()
+    for _, e in ipairs(self.pool) do
+        if not e.SpriteRenderer.spritesheet then
+            e.SpriteRenderer.spritesheet = {
+                sprite = self:getWorld().atlas[e.SpriteRenderer.index]
+            }
+        end
+    end
+end
+
+function DrawSystem:draw()
+    for _, e in ipairs(self.pool) do
+
+        if e.SpriteRenderer.selection then
+            love.graphics.draw(
+                e.SpriteRenderer.spritesheet.sprite,
+                e.SpriteRenderer.selection,
+                e.Position.x - round(e.SpriteRenderer.spritesheet.perCell.x / 2, 1), 
+                e.Position.y - round(e.SpriteRenderer.spritesheet.perCell.y / 2, 1)
+            )
+        else
+            love.graphics.draw(
+                e.SpriteRenderer.spritesheet.sprite,
+                e.Position.x - round(e.SpriteRenderer.spritesheet.sprite:getWidth() / 2, 1), 
+                e.Position.y - round(e.SpriteRenderer.spritesheet.sprite:getHeight() / 2, 1)
+            )
+        end
+    end
+end
 
 
 --[[
@@ -21,11 +200,13 @@ TimelineSystem = concord.system {
     }
 }
 
+
 function TimelineSystem:update(dt) 
     for _,e in ipairs(self.pool) do
         local action = e.Timeline.actions[e.Timeline.curIndex]        
         if action == nil then
-            self:getWorld():removeEntity(e)
+            logger.debug("hello")
+            e:getWorld():removeEntity(e)
         else 
             if action[1] == "move" then
                 if math.abs(e.Position.x - lerp(e.Position.x, action[2].x, action[3])) < 1 and math.abs(e.Position.y - lerp(e.Position.y, action[2].y, action[3])) < 1 then
@@ -73,7 +254,18 @@ function TimelineSystem:update(dt)
                 end
                 -- if action[2] == "homing" then
                 --end
+            elseif action[1] == "wait" then 
+                e.Timeline.vars.timePassed = (e.Timeline.vars.timePassed or 0) + dt
+                if e.Timeline.vars.timePassed > action[2] then
+                    e.Timeline.vars = {}
+                    e.Timeline.curIndex = e.Timeline.curIndex + 1
+                end
             end
+        end
+        local action = e.Timeline.actions[e.Timeline.curIndex]        
+        if action == nil then
+            logger.debug("hello")
+            e:getWorld():removeEntity(e)
         end
     end
 end

@@ -42,10 +42,11 @@ end)
 --[[
     SpriteRenderer
 ]]
-concord.component("SpriteRenderer", function(component, spritesheet)
-    component.spritesheet = spritesheet
-    component.sprite = love.graphics.newQuad(0, 0, spritesheet.width, spritesheet.height, spritesheet.width, spritesheet.height)
-    component.frames = {}
+concord.component("SpriteRenderer", function(component, index)
+    component.index = index
+    -- component.sprite = nil
+    -- component.selection = nil
+    -- component.frames = {}
 end)
 
 
@@ -53,7 +54,7 @@ end)
     Animation
 ]]
 concord.component("Animation", function(component, fps)
-    component.fps = assert(fps)
+    component.fps = fps
     component.time = 0
 end)
 
@@ -63,9 +64,14 @@ end)
 ]]
 concord.component("Animator", function(component, states, transitions, variables)
     component.states = states
+    component.currentState = states[ENTRY_STATE]
     component.transitions = transitions
     component.variables = variables
 end)
+
+
+-- :addComponent(states, transistions, {name = {"transform", "position"}, name2 = {"abc"}})
+
 
 -- --[[
 --     BoxCollider

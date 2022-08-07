@@ -5,3 +5,6 @@ RESOLUTION = {
 }
 
 MAX_ENTITIES = 10
+
+ENTRY_STATE = {}
+SPRITES_PATH = "res/sprites/"

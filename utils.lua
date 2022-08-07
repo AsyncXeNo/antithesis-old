@@ -12,14 +12,17 @@ function normalize(vec)
     return vec
 end
 
+
 function bezierValue(b0, b1, b2, b3, t)
     return (1-t)^3*b0     +     3*(1-t)^2*t*b1    +     3*(1-t)*t^2*b2    +    t^3*b3
 end
+
 
 function bezierPoint(p1, p2, p3, p4, t)
     return {x = bezierValue(p1.x,p2.x,p3.x,p4.x,t),
             y = bezierValue(p1.y,p2.y,p3.y,p4.y,t)}
 end
+
 
 function lerp(a, b, t)
     return a + (b-a) * t
@@ -116,6 +119,7 @@ function isInBoundsobj(obj, bounds)
     end
 end
 
+
 function list2Set(list)
     set = {}
     for _,k in ipairs(list) do
@@ -124,8 +128,27 @@ function list2Set(list)
     return set
 end
 
+
 function len(tab)
     count = 0
     for _, k in pairs(tab) do count = count + 1 end
     return count
+end
+
+
+function statesTable(tab, entryState)
+    tab[ENTRY_STATE] = entryState
+    return tab
+end
+
+function crawl(dir)
+    files = love.filesystem.getDirectoryItems( dir )
+    for k,v in ipairs(files) do
+        if love.filesystem.isDirectory(v) then 
+            l = combineLists(l, crawl(dir))
+        else
+            l[#l+1] = dir .. v
+        end 
+    end
+    return l
 end
